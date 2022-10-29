@@ -1,10 +1,14 @@
 #Carregando os dados
+#print(getwd())
+#setwd("C:\\Users\\diego\\Documents\\Mineração_r")
 #installed.packages("tidyverse")
 library(tidyverse)
-dt_data = read.csv2("relatorio_inscricao_dados_abertos_fies_22021.csv",
+dt_data = read.csv2("relatorio_inscricao_dados_abertos_fies.csv",
                     fileEncoding = "Latin1", 
                     check.names = F,
                     sep = ";")
+
+#glimpse(dt_data)
 
 #Convertendo dataframe in Tibble
 tibble_data = as_tibble(dt_data)
@@ -46,37 +50,17 @@ tibble_data = rename(tibble_data,
                'Ensino_medio_conclusao' = 'Ano conclusão ensino médio')
 
 #selecioando as colunas a serem trabalhadas
-tibble_data = select(tibble_data, 'Sexo',
-                       'UF_residencia',
-                       'Municipio_residencia',
-                       'Deficiencia',
-                       'Ensino_medio_publico',
-                       'Ensino_medio_conclusao',
-                       'Curso_superior_concluido',
-                       'Professor',
-                       'N_membros_familiar',
-                       'Renda_per_capita',
-                       'Regiao_grupo_preferencia',
-                       'UF',
-                       'Area_conhecimento',
-                       'Subarea_conhecimento',
-                       'Nota_corte',
-                       'Curso_escolhido',
-                       'Nome_IES',
-                       'Organizacao_academica_IES',
-                       'Municipio_oferta',
-                       'Codigo_curso',
-                       'Nome_curso',
-                       'Turno',
-                       'Media_nota_enem',
-                       'Ano_enem',
-                       'Redacao',
-                       'Matematica_e_tec',
-                       'Linguagem_cod_tec',
-                       'Ciencias_natureza_tec',
-                       'Ciencias_humas_tec',
-                       'Etnia')
-
+tibble_data = select(tibble_data, 'Sexo','UF_residencia','Municipio_residencia',
+                     'Deficiencia','Ensino_medio_publico',
+                     'Ensino_medio_conclusao', 'Curso_superior_concluido',
+                     'Professor','N_membros_familiar','Renda_per_capita',
+                     'Regiao_grupo_preferencia','UF','Area_conhecimento',
+                     'Subarea_conhecimento','Nota_corte','Curso_escolhido',
+                     'Nome_IES','Organizacao_academica_IES','Municipio_oferta',
+                     'Codigo_curso','Nome_curso','Turno','Media_nota_enem',
+                     'Ano_enem','Redacao','Matematica_e_tec',
+                     'Linguagem_cod_tec','Ciencias_natureza_tec',
+                     'Ciencias_humas_tec','Etnia')
 
 #Target encoding function with R ---
 #install.packages("CatEncoders")
@@ -121,12 +105,14 @@ tibble_data$Municipio_oferta = transform(categoria_Municipio_oferta,tibble_data$
 tibble_data$Nome_curso = transform(categoria_Nome_curso,tibble_data$Nome_curso)
 tibble_data$Turno = transform(categoria_Turno,tibble_data$Turno)
 
+
 #Reverter a apresentação dos valores que foram conertidos em números.
 #tibble_data$Etnia = inverse.transform(categoria_etinia,tibble_data$Etnia)
 
 #Transformando o dado de Etnia em um valor categórico
 tibble_data$Etnia = as.factor(tibble_data$Etnia)
 
+#glimpse(tibble_data)
 
 #Dividindo a base em treino e teste
 #make this example reproducible
@@ -150,10 +136,11 @@ summary(tibble_data$Etnia)
 
 
 
+
 #install.packages("C50")
 library(C50)
 classifier = C5.0(train[1:29],train$Etnia)
-classifier
+#classifier
 
 summary(classifier)
 #?C5.0
@@ -162,8 +149,8 @@ summary(classifier)
 #train$Etnia = as.factor(train$Etnia)
 
 #Rodando o modelo
-library(rpart)
-classifier = rpart(formula = Etnia ~ ., data = train)
+#library(rpart)
+#classifier = rpart(formula = Etnia ~ ., data = train)
 
 print(classifier)
 
@@ -175,6 +162,9 @@ y_pred = predict(classifier, newdata = test[1:29], type = 'class')
 
 
 table(y_pred)
+table(test$Etnia)
+
+#table(y_pred)
 
 #etinia_pred = predict(etinia_model, test)
 
@@ -217,8 +207,16 @@ table(tibble_data$Etnia)
 ggplot(tibble_data, aes(x = Media_nota_enem, y = Etnia)) +
   geom_point()
 plot_grid(p1, p2, p3,
-          ncol = 3,
+          ncol = 1,
           labels = c("p1", "p2", "p3"),
           rel_widths = c(1, 1.2, 1.2))
+
+
+#Histograma -> Variáveis contínuas vs Categóricas
+tibble_data %>% ggplot(aes(x = Etnia , y = Sexo))+
+  geom_col() 
+  
+  
+table(tibble_data$Etnia)
 
 
